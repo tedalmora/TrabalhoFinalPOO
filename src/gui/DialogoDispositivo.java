@@ -99,11 +99,8 @@ public class DialogoDispositivo extends JDialog {
         c.gridx = 0; c.gridy = 3; c.fill = GridBagConstraints.NONE; c.weightx = 0;
         form.add(new JLabel("Porta TCP:", SwingConstants.RIGHT), c);
         c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        JPanel painelPorta = new JPanel(new BorderLayout(4, 0));
-        painelPorta.add(campoPorta, BorderLayout.WEST);
-        painelPorta.add(new JLabel("  (opcional — ex.: 80, 443, 22)"),
-                BorderLayout.CENTER);
-        form.add(painelPorta, c);
+        campoPorta.setToolTipText("Opcional — ex.: 80, 443, 22");
+        form.add(campoPorta, c);
 
         // Linha 4: Verificação HTTP
         c.gridx = 1; c.gridy = 4; c.fill = GridBagConstraints.HORIZONTAL;

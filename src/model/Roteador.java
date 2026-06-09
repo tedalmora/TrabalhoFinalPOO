@@ -1,10 +1,6 @@
 package model;
 
-/**
- * Subclasse concreta que representa um Roteador. Sobrescreve
- * {@link #diagnosticoEspecifico(MetricaRede)} para destacar problemas
- * comuns em roteadores, como rotas excessivamente longas (muitos saltos).
- */
+/** Roteador. Alerta se a rota tem muitos saltos (possível loop). */
 public class Roteador extends DispositivoRede {
 
     public Roteador(String nome, String enderecoIp) {
@@ -12,29 +8,18 @@ public class Roteador extends DispositivoRede {
     }
 
     @Override
-    public String tipoDispositivo() {
-        return "Roteador";
-    }
+    public String tipoDispositivo() { return "Roteador"; }
 
     @Override
-    public String diagnosticoEspecifico(MetricaRede metrica) {
-        if (metrica == null) {
-            return "Sem dados coletados ainda.";
-        }
-        if (!metrica.isAlcancavel()) {
+    public String diagnosticoEspecifico(MetricaRede m) {
+        if (m == null) return "Sem dados coletados ainda.";
+        if (!m.isAlcancavel())
             return "Roteador não respondeu — verifique alimentação e cabos.";
-        }
-        // Heurística específica de roteador: rota muito longa pode indicar
-        // problema de roteamento (loop, redirecionamentos inesperados).
-        int saltos = metrica.getRotaTraceroute().size();
-        if (saltos > 15) {
-            return "Roteador alcançável, mas a rota possui " + saltos
-                    + " saltos (verifique a tabela de roteamento).";
-        }
-        if (metrica.getLatenciaMediaMs() > 100) {
-            return "Roteador respondendo com latência alta ("
-                    + metrica.getLatenciaFormatada() + ").";
-        }
+        int saltos = m.getRotaTraceroute().size();
+        if (saltos > 15)
+            return "Roteador alcançável, mas rota com " + saltos + " saltos.";
+        if (m.getLatenciaMediaMs() > 100)
+            return "Roteador respondendo com latência alta (" + m.getLatenciaFormatada() + ").";
         return "Roteador funcionando normalmente.";
     }
 }
