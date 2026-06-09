@@ -3,10 +3,9 @@ package monitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 import model.DispositivoRede;
 import model.MetricaRede;
@@ -18,40 +17,34 @@ import service.ResultadoPing;
 import service.ResultadoTcp;
 
 /**
- * Núcleo de threads do sistema. Para cada dispositivo cadastrado,
- * agenda uma coleta periódica (ping, traceroute, DNS, TCP, HTTP) em
- * background e notifica observadores quando a métrica é atualizada.
+ * Núcleo de threads do sistema.
  *
- * Usa um ScheduledExecutorService com threads daemon para não impedir
- * o encerramento da aplicação.
+ * Para refletir o padrão visto em aula, cada dispositivo tem sua própria
+ * classe de thread (extends Thread) com loop em run(), sleep e interrupção.
  */
 public class MonitorDispositivos {
 
-    /** Intervalo entre coletas, em segundos. */
-    private static final int INTERVALO_SEGUNDOS = 15;
-
-    private final ScheduledExecutorService pool =
-            Executors.newScheduledThreadPool(4, r -> {
-                Thread t = new Thread(r, "monitor-rede");
-                t.setDaemon(true);
-                return t;
-            });
+    private static final int INTERVALO_MS = 15_000;
 
     private final List<DispositivoRede> dispositivos = new CopyOnWriteArrayList<>();
     private final List<DispositivoObserver> observadores = new CopyOnWriteArrayList<>();
+    private final Map<Integer, ThreadColetaDispositivo> threadsPorDispositivo =
+            new ConcurrentHashMap<>();
 
     /** Adiciona um dispositivo e dispara seu monitoramento periódico. */
     public void adicionarDispositivo(DispositivoRede d) {
         dispositivos.add(d);
-        pool.scheduleWithFixedDelay(
-                () -> executarColeta(d), 0, INTERVALO_SEGUNDOS, TimeUnit.SECONDS);
+        ThreadColetaDispositivo t = new ThreadColetaDispositivo(d);
+        threadsPorDispositivo.put(d.getId(), t);
+        t.start();
     }
 
     public void removerDispositivo(DispositivoRede d) {
         dispositivos.remove(d);
-        // A tarefa agendada continua existindo, mas como o dispositivo
-        // saiu da lista da GUI ela apenas trabalha em vão até o shutdown.
-        // Em um app pequeno isso é aceitável; o pool é finito (4 threads).
+        ThreadColetaDispositivo t = threadsPorDispositivo.remove(d.getId());
+        if (t != null) {
+            t.encerrar();
+        }
     }
 
     public List<DispositivoRede> getDispositivos() {
@@ -62,9 +55,12 @@ public class MonitorDispositivos {
         observadores.add(obs);
     }
 
-    /** Encerra todas as threads do pool. Chamado ao fechar a janela. */
+    /** Encerra todas as threads de coleta. Chamado ao fechar a janela. */
     public void encerrar() {
-        pool.shutdownNow();
+        for (ThreadColetaDispositivo t : threadsPorDispositivo.values()) {
+            t.encerrar();
+        }
+        threadsPorDispositivo.clear();
     }
 
     /** Executa uma coleta para o dispositivo informado (roda no pool). */
@@ -130,5 +126,38 @@ public class MonitorDispositivos {
             return StatusDispositivo.ATENCAO;
         }
         return StatusDispositivo.OK;
+    }
+
+    /**
+     * Thread por dispositivo, no estilo visto em aula (extends Thread).
+     * Fica em loop coletando métricas até receber interrupção.
+     */
+    private class ThreadColetaDispositivo extends Thread {
+
+        private final DispositivoRede dispositivo;
+        private volatile boolean ativo = true;
+
+        ThreadColetaDispositivo(DispositivoRede dispositivo) {
+            super("monitor-" + dispositivo.getId());
+            this.dispositivo = dispositivo;
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            while (ativo && !isInterrupted()) {
+                executarColeta(dispositivo);
+                try {
+                    Thread.sleep(INTERVALO_MS);
+                } catch (InterruptedException e) {
+                    interrupt();
+                }
+            }
+        }
+
+        void encerrar() {
+            ativo = false;
+            interrupt();
+        }
     }
 }
