@@ -6,8 +6,12 @@ import java.awt.Color;
 Enumeração que representa o estado operacional de um dispositivo de rede.
 Esses status são usados pela GUI para colorir as linhas da tabela
 (verde = OK, amarelo = ATENCAO, vermelho = FALHA, cinza = DESCONHECIDO),
+eu uso um enum assim:
+StatusDispositivo status = StatusDispositivo.OK;
+ou Dispositivo.getUltimaMetrica().getStatus() == StatusDispositivo.FALHA
 */
 
+// cada status (OK, ATENCAO, etc) é um valor do enum, e cada valor tem uma descrição e uma cor associada. A descrição é usada na interface gráfica, e a cor é usada para colorir a linha da tabela de dispositivos.
 public enum StatusDispositivo {
 
     // Dispositivo respondeu ao ping com latência baixa e sem perda.
@@ -23,10 +27,10 @@ public enum StatusDispositivo {
     DESCONHECIDO("Aguardando coleta", new Color(189, 189, 189));
 
     // Texto amigável para exibir na interface gráfica.
-    private final String descricao;
+    private String descricao;
 
     // Cor associada ao status (usada pelo renderer da JTable).
-    private final Color cor;
+    private Color cor;
 
     StatusDispositivo(String descricao, Color cor) {
         this.descricao = descricao;

@@ -1,4 +1,5 @@
 package gui;
+import java.awt.EventQueue;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -14,7 +15,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -32,10 +32,10 @@ receber atualizações do monitor.
 // minha janela prinicpla é um JFRame que implementa o observer, assim ela vai receber as atualizações do monitor de dispositivos, que é quem gerencia as threads de cada device
 public class JanelaPrincipal extends JFrame implements DispositivoObserver {
 
-    private final MonitorDispositivos monitor; //final porque não quero que seja alterado depois de criado, é o monitor que vai me dar as atualizações dos devices
-    private final ModeloDispositivos modelo = new ModeloDispositivos(); //modelo da tabela de dispositivos
-    private final JTable tabela = new JTable(modelo);
-    private final PainelDetalhes painelDetalhes = new PainelDetalhes(); //painel lateral que mostra os detalhes do device selecionado na tabela
+    private MonitorDispositivos monitor; //monitora meus dispositivos 
+    private ModeloDispositivos modelo = new ModeloDispositivos(); //modelo da tabela de dispositivos
+    private JTable tabela = new JTable(modelo);
+    private PainelDetalhes painelDetalhes = new PainelDetalhes(); //painel lateral que mostra os detalhes do device selecionado na tabela
 
     //mostro a janela principal, que é um JFrame, com a tabela de dispositivos, o painel lateral de detalhes e as abas de interfaces e rotas. A janela principal implementa o observer para receber atualizações do monitor de dispositivos.
     public JanelaPrincipal(MonitorDispositivos monitor) {
@@ -48,7 +48,7 @@ public class JanelaPrincipal extends JFrame implements DispositivoObserver {
         addWindowListener(new WindowAdapter() {
             @Override public void windowClosing(WindowEvent e) {
                 monitor.encerrar();
-                dispose();
+                dispose(); // dispose faz a janela ser destruída, liberando recursos
                 System.exit(0);
             }
         });
@@ -84,12 +84,13 @@ public class JanelaPrincipal extends JFrame implements DispositivoObserver {
         tabela.setFillsViewportHeight(true); // faz a tabela preencher o espaço disponível
         tabela.setAutoCreateRowSorter(true); // permite ordenar as colunas clicando no cabeçalho
         // Coluna 0 (Status) recebe coloração de fundo conforme o enum.
-        tabela.getColumnModel().getColumn(0).setCellRenderer(new RendererStatus());
+        // isso acontece sempre que a tabela for redesenhada, por exemplo quando o usuário muda a seleção, ou quando o monitor atualiza a métrica de um dispositivo
+        tabela.getColumnModel().getColumn(0).setCellRenderer(new RendererStatus()); //pego a coluna 0 da tabela, que é a coluna de status, e seto o renderer para a classe RendererStatus, que vai pintar o fundo da célula com a cor do enum StatusDispositivo
         tabela.getColumnModel().getColumn(0).setPreferredWidth(120);
 
         // quando o usuário muda a seleção da tabela, eu quero exibir os detalhes do dispositivo selecionado no painel lateral
         tabela.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) painelDetalhes.exibir(selecionado());
+            painelDetalhes.exibir(selecionado());
         });
 
         // crio um split pane horizontal com a tabela de dispositivos à esquerda e o painel de detalhes à direita
@@ -115,7 +116,7 @@ public class JanelaPrincipal extends JFrame implements DispositivoObserver {
         if (dlg.foiConfirmado()) {
             DispositivoRede novo = dlg.getResultado(); //pego novo dispositivo do dialogo
             monitor.adicionarDispositivo(novo);//coloco no monitor, ele vai criar a thread de coleta para esse dispositivo
-            modelo.adicionar(novo);//coloco no modelo da tabela
+            modelo.adicionar(novo);//coloco no modelo da tabela, começando a exibir na tabela
         }
     }
 
@@ -152,33 +153,44 @@ public class JanelaPrincipal extends JFrame implements DispositivoObserver {
         JOptionPane.showMessageDialog(this, msg, "Aviso", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // retorna o dispositivo selecionado na tabela, ou null se nenhum estiver selecionado
+    // retorna um DispositivoRede selecionado na tabela, ou null se nenhum estiver selecionado
     private DispositivoRede selecionado() {
-        int row = tabela.getSelectedRow();
-        if (row < 0) return null;
-        return modelo.getDispositivo(tabela.convertRowIndexToModel(row));
+        int row = tabela.getSelectedRow(); //pega a linha selecionada na tabela, que é a linha visível, mas pode estar ordenada de forma diferente da linha do modelo
+        if (row < 0) return null; // se não houver seleção, retorna null
+        return modelo.getDispositivo(tabela.convertRowIndexToModel(row)); // converte o índice da linha visível para o índice da linha do modelo, e retorna o dispositivo correspondente
     }
 
     // Observer (chamado pelas threads do monitor)
     @Override
     public void aoAtualizarDispositivo(DispositivoRede d) {
-        // Roda na gui/swing thread para atualizar a tabela e o painel de detalhes. Se o dispositivo atualizado estiver selecionado, atualiza o painel de detalhes também.
-        SwingUtilities.invokeLater(() -> {
-            int row = modelo.linhaDe(d);
-            if (row >= 0) modelo.atualizarLinha(row);
-            DispositivoRede sel = selecionado();
-            if (sel != null && sel == d) painelDetalhes.exibir(d);
+        // eu mando as edições da tabela e do painel de detalhes para a thread de eventos do Swing, que é a thread que cuida da interface gráfica. Isso evita problemas de concorrência e garante que a interface seja atualizada corretamente.
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // pego a linha do modelo correspondente ao dispositivo atualizado
+                int row = modelo.linhaDe(d);
+
+                // se o dispositivo atualizado estiver na tabela, atualizo a linha correspondente. Se não estiver, não faço nada.
+                if (row >= 0) modelo.atualizarLinha(row);
+
+                // se o dispositivo atualizado estiver selecionado, atualizo o painel de detalhes
+                DispositivoRede sel = selecionado();
+                if (sel != null && sel == d) {
+                    painelDetalhes.exibir(d);
+                }
+            }
         });
     }
 
+
     // Renderer da coluna Status: pinta o fundo com a cor do enum.
+    // classe interna privada que estende DefaultTableCellRenderer, usada para renderizar a coluna de status da tabela de dispositivos. Ela pega o valor da célula, que é um StatusDispositivo, e define o texto e a cor de fundo da célula de acordo com o status.
     private static class RendererStatus extends DefaultTableCellRenderer {
         @Override
-        public Component getTableCellRendererComponent(JTable t, Object v,
-                boolean sel, boolean foc, int row, int col) {
-            super.getTableCellRendererComponent(t, v, sel, foc, row, col);
-            StatusDispositivo s = (v instanceof StatusDispositivo)
-                    ? (StatusDispositivo) v : StatusDispositivo.DESCONHECIDO;
+        public Component getTableCellRendererComponent(JTable t, Object v,boolean sel, boolean foc, int row, int col) {
+            super.getTableCellRendererComponent(t, v, sel, foc, row, col); //chama o método da superclasse para configurar a célula com o texto e a seleção padrão
+            // v é o valor da célula, que deve ser um StatusDispositivo. Se não for, uso DESCONHECIDO como padrão. Depois seto o texto da célula com a descrição do status, a cor do texto para cinza escuro e a cor de fundo para a cor do status com transparência se não estiver selecionada.
+            StatusDispositivo s = (v instanceof StatusDispositivo) ? (StatusDispositivo) v : StatusDispositivo.DESCONHECIDO;
             setText(s.getDescricao());
             setForeground(Color.DARK_GRAY);
             if (!sel) {

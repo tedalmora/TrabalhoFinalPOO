@@ -11,16 +11,19 @@ Atributos comuns a todos os tipos:
  - nome: nome amigável (ex.: "Roteador da Sala");
  - enderecoIp: IP ou hostname usado nas ferramentas de diagnóstico;
  - ultimaMetrica: última métrica coletada (pode ser null).
+
+ Quem coleta e atualiza a métrica é o MonitorDispositivos, que chama o método setUltimaMetrica() para atualizar o objeto.
+ Cada subclasse implementa o método diagnosticoEspecifico(), que interpreta a métrica e devolve um diagnóstico textual específico para aquele tipo de dispositivo.
 */
 public abstract class DispositivoRede {
 
     // Gerador thread-safe de IDs sequenciais.
     private static int PROXIMO_ID = 1;
 
-    private final int id;
+    private int id;
     private String nome;
     private String enderecoIp;
-    private volatile MetricaRede ultimaMetrica;
+    private volatile MetricaRede ultimaMetrica; //metricas e status
 
     protected DispositivoRede(String nome, String enderecoIp) {
         this.id = PROXIMO_ID++;

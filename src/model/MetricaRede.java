@@ -12,29 +12,32 @@ As métricas combinam dados de:
  - Ping (alcançável, latência média);
  - MTR simplificado (perda percentual de pacotes);
  - Traceroute (lista de saltos até o destino).
+
+ A métrica é só o resultado. Quer dizer, não é responsável por coletar os dados. A coleta é feita pelo MonitorDispositivos, que cria uma instância de MetricaRede com os resultados obtidos.
+ Quem vê o que cada um significa é o DispositivoRede, que interpreta os dados e gera um diagnóstico específico para cada tipo de dispositivo (Roteador, Switch, Firewall, Servidor).
 */
 public class MetricaRede {
 
     // Indica se houve qualquer resposta de eco (ICMP) do destino.
-    private final boolean alcancavel;
+    private boolean alcancavel;
 
     // Latência média em milissegundos. Vale -1 quando não foi possível medir.
-    private final double latenciaMediaMs;
+    private double latenciaMediaMs;
 
     // Percentual de pacotes perdidos (0.0 a 100.0).
-    private final double perdaPacotesPercentual;
+    private double perdaPacotesPercentual;
 
     // Hops/saltos obtidos pelo traceroute. Pode estar vazio quando não rodado.
-    private final List<String> rotaTraceroute;
+    private List<String> rotaTraceroute;
 
     // Status interpretado das métricas (OK / ATENCAO / FALHA).
-    private final StatusDispositivo status;
+    private StatusDispositivo status;
 
     // Pequeno diagnóstico textual ("Latência alta", "Sem resposta", etc.).
-    private final String diagnostico;
+    private String diagnostico;
 
     // Momento da coleta. Útil para exibir "última atualização" na GUI.
-    private final LocalDateTime coletadaEm;
+    private LocalDateTime coletadaEm;
 
     public MetricaRede(boolean alcancavel,double latenciaMediaMs,double perdaPacotesPercentual,List<String> rotaTraceroute,StatusDispositivo status,String diagnostico) {
         this.alcancavel = alcancavel;

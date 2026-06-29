@@ -1,4 +1,4 @@
-import javax.swing.SwingUtilities;
+import java.awt.EventQueue;
 
 import gui.JanelaPrincipal;
 import monitor.MonitorDispositivos;
@@ -17,7 +17,14 @@ public class App {
         // crio um monitor de dispositivos que gerencia as threads dos meus devices
         MonitorDispositivos monitor = new MonitorDispositivos();
 
-        // nao uso eventqueue.invokeLater() aqui porque a janela principal ja faz isso internamente. so crio a janela e deixo ela visivel, o resto é com ela.
-        SwingUtilities.invokeLater(() -> new JanelaPrincipal(monitor).setVisible(true));
+        // crio a GUI e passo o monitor para ela, para que a GUI possa exibir os dispositivos e suas métricas
+        // eu mando minha UI pra thread de eventos do Swing, que é a thread que cuida da interface gráfica
+        // toda mudança na interface gráfica deve ser feita nessa thread, senão dá erro
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new JanelaPrincipal(monitor).setVisible(true);
+            }
+        });
     }
 }

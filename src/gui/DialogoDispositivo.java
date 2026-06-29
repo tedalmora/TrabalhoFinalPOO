@@ -22,29 +22,22 @@ import model.DispositivoRede;
 import service.DispositivoFactory;
 import service.DispositivoFactory.TipoDispositivo;
 
-/**
- * Diálogo modal usado tanto para CADASTRO quanto para EDIÇÃO de
- * dispositivos. Quando aberto sem um dispositivo, opera em modo "novo";
- * quando recebe um dispositivo no construtor, opera em modo "editar".
- *
- * O resultado é exposto por dois getters: {@link #foiConfirmado()} e
- * {@link #getResultado()} — a janela principal lê esses valores depois
- * que o diálogo é fechado.
+/*
+Dialogos para cadastro, edição e remoção de dispositivos.
  */
 public class DialogoDispositivo extends JDialog {
 
-    private final JTextField campoNome = new JTextField(20);
-    private final JTextField campoIp = new JTextField(20);
-    private final JComboBox<TipoDispositivo> comboTipo =
-            new JComboBox<>(TipoDispositivo.values());
+    private JTextField campoNome = new JTextField(20);
+    private JTextField campoIp = new JTextField(20);
+    private JComboBox<TipoDispositivo> comboTipo = new JComboBox<>(TipoDispositivo.values());
 
-    // Quando estamos editando, guardamos a referência original para
-    // alterá-la in-place ao confirmar (mantendo o mesmo ID e métrica).
-    private final DispositivoRede emEdicao;
+    // emEdicao serve para saber se o dialogo foi aberto para criar um novo dispositivo (emEdicao == null) ou para editar um dispositivo existente (emEdicao != null). Se for edição, os campos serão preenchidos com os dados do dispositivo e o tipo não poderá ser alterado.
+    private DispositivoRede emEdicao;
 
     private boolean confirmado = false;
     private DispositivoRede resultado;
 
+    // Construtor do diálogo. Se emEdicao for null, o diálogo será para criar um novo dispositivo. Se emEdicao for diferente de null, o diálogo será para editar o dispositivo existente.
     public DialogoDispositivo(java.awt.Frame parent, DispositivoRede emEdicao) {
         super(parent, true); // modal
         this.emEdicao = emEdicao;
@@ -54,16 +47,18 @@ public class DialogoDispositivo extends JDialog {
         construirInterface();
         preencherCamposSeEdicao();
 
-        pack();
+        pack();// ajusta o tamanho da janela para caber os componentes
         setMinimumSize(new Dimension(380, getHeight()));
-        setLocationRelativeTo(parent);
+        setLocationRelativeTo(parent); // centraliza a janela em relação à janela pai
     }
 
-    /** Monta o formulário com GridBagLayout para alinhar rótulos e campos. */
+    // monta o formulario
     private void construirInterface() {
+        // gridbag layout é um layout manager que permite organizar os componentes em uma grade, com linhas e colunas, e permite que os componentes ocupem mais de uma célula da grade. É mais flexível que o GridLayout, que só permite uma grade fixa.
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
+        //
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(4, 4, 4, 4);
         c.anchor = GridBagConstraints.WEST;
