@@ -30,17 +30,13 @@ public final class DispositivoFactory {
 
     public static DispositivoRede criar(TipoDispositivo tipo,
                                         String nome,
-                                        String ip,
-                                        Integer portaTcp,
-                                        boolean verificarHttp) {
+                                        String ip) {
         if (tipo == null)
             throw new IllegalArgumentException("Tipo é obrigatório.");
         if (nome == null || nome.trim().isEmpty())
             throw new IllegalArgumentException("Nome é obrigatório.");
         if (ip == null || ip.trim().isEmpty())
             throw new IllegalArgumentException("IP/host é obrigatório.");
-        if (portaTcp != null && (portaTcp < 1 || portaTcp > 65535))
-            throw new IllegalArgumentException("Porta TCP deve ser 1..65535.");
 
         String n = nome.trim();
         String i = ip.trim();
@@ -55,14 +51,7 @@ public final class DispositivoFactory {
             case SERVIDOR: d = new Servidor(n, i); break;
             default: throw new IllegalArgumentException("Tipo inválido.");
         }
-        d.setPortaTcp(portaTcp);
-        d.setVerificarHttp(verificarHttp);
         return d;
-    }
-
-    /** Atalho sem porta/HTTP. */
-    public static DispositivoRede criar(TipoDispositivo tipo, String nome, String ip) {
-        return criar(tipo, nome, ip, null, false);
     }
 
     /** Descobre o enum equivalente ao tipo declarado pelo dispositivo. */

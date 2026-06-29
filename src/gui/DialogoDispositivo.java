@@ -9,7 +9,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -28,10 +27,6 @@ import service.DispositivoFactory.TipoDispositivo;
  * dispositivos. Quando aberto sem um dispositivo, opera em modo "novo";
  * quando recebe um dispositivo no construtor, opera em modo "editar".
  *
- * Além de nome/IP/tipo, o usuário pode informar:
- *  - uma porta TCP a ser verificada periodicamente (campo opcional);
- *  - se deseja realizar verificação HTTP HEAD/GET no dispositivo.
- *
  * O resultado é exposto por dois getters: {@link #foiConfirmado()} e
  * {@link #getResultado()} — a janela principal lê esses valores depois
  * que o diálogo é fechado.
@@ -42,10 +37,6 @@ public class DialogoDispositivo extends JDialog {
     private final JTextField campoIp = new JTextField(20);
     private final JComboBox<TipoDispositivo> comboTipo =
             new JComboBox<>(TipoDispositivo.values());
-    // Porta TCP é texto livre (pode ficar vazio = sem teste).
-    private final JTextField campoPorta = new JTextField(8);
-    private final JCheckBox checkHttp = new JCheckBox(
-            "Verificar HTTP (HEAD/GET)");
 
     // Quando estamos editando, guardamos a referência original para
     // alterá-la in-place ao confirmar (mantendo o mesmo ID e métrica).
@@ -95,17 +86,6 @@ public class DialogoDispositivo extends JDialog {
         c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
         form.add(campoIp, c);
 
-        // Linha 3: Porta TCP (opcional)
-        c.gridx = 0; c.gridy = 3; c.fill = GridBagConstraints.NONE; c.weightx = 0;
-        form.add(new JLabel("Porta TCP:", SwingConstants.RIGHT), c);
-        c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        campoPorta.setToolTipText("Opcional — ex.: 80, 443, 22");
-        form.add(campoPorta, c);
-
-        // Linha 4: Verificação HTTP
-        c.gridx = 1; c.gridy = 4; c.fill = GridBagConstraints.HORIZONTAL;
-        form.add(checkHttp, c);
-
         // Botões
         JPanel botoes = new JPanel();
         JButton btnOk = new JButton(new AbstractAction("Confirmar") {
@@ -130,10 +110,6 @@ public class DialogoDispositivo extends JDialog {
             campoNome.setText(emEdicao.getNome());
             campoIp.setText(emEdicao.getEnderecoIp());
             comboTipo.setSelectedItem(DispositivoFactory.tipoDe(emEdicao));
-            if (emEdicao.getPortaTcp() != null) {
-                campoPorta.setText(String.valueOf(emEdicao.getPortaTcp()));
-            }
-            checkHttp.setSelected(emEdicao.isVerificarHttp());
             // Trocar o tipo de um dispositivo já existente complicaria
             // a vida do monitor (ID novo, métrica perdida). Mantemos
             // tipo fixo na edição.
@@ -146,19 +122,13 @@ public class DialogoDispositivo extends JDialog {
             String nome = campoNome.getText();
             String ip = campoIp.getText();
             TipoDispositivo tipo = (TipoDispositivo) comboTipo.getSelectedItem();
-            Integer porta = parsePorta(campoPorta.getText());
-            boolean http = checkHttp.isSelected();
 
             if (emEdicao == null) {
-                // Cadastro: pede ao Factory um novo dispositivo já
-                // configurado com porta e flag HTTP.
-                resultado = DispositivoFactory.criar(tipo, nome, ip, porta, http);
+                resultado = DispositivoFactory.criar(tipo, nome, ip);
             } else {
                 // Edição in-place: setters validam internamente.
                 emEdicao.setNome(nome.trim());
                 emEdicao.setEnderecoIp(ip.trim());
-                emEdicao.setPortaTcp(porta);
-                emEdicao.setVerificarHttp(http);
                 resultado = emEdicao;
             }
             confirmado = true;
@@ -167,27 +137,6 @@ public class DialogoDispositivo extends JDialog {
             JOptionPane.showMessageDialog(
                     this, ex.getMessage(), "Dados inválidos",
                     JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    /**
-     * Converte o texto do campo de porta em Integer. Vazio → null
-     * (sem teste). Texto inválido → exceção.
-     */
-    private Integer parsePorta(String texto) {
-        if (texto == null) return null;
-        String t = texto.trim();
-        if (t.isEmpty()) return null;
-        try {
-            int p = Integer.parseInt(t);
-            if (p < 1 || p > 65535) {
-                throw new IllegalArgumentException(
-                        "Porta TCP deve estar entre 1 e 65535.");
-            }
-            return p;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    "Porta TCP inválida: '" + t + "'.");
         }
     }
 

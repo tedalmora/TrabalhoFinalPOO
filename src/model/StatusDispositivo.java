@@ -2,13 +2,12 @@ package model;
 
 import java.awt.Color;
 
-/**
- * Enumeração que representa o estado operacional de um dispositivo de rede.
- *
- * Esses status são usados pela GUI para colorir as linhas da tabela
- * (verde = OK, amarelo = ATENCAO, vermelho = FALHA, cinza = DESCONHECIDO),
- * conforme exigido pelo enunciado do trabalho.
- */
+/*
+Enumeração que representa o estado operacional de um dispositivo de rede.
+Esses status são usados pela GUI para colorir as linhas da tabela
+(verde = OK, amarelo = ATENCAO, vermelho = FALHA, cinza = DESCONHECIDO),
+*/
+
 public enum StatusDispositivo {
 
     // Dispositivo respondeu ao ping com latência baixa e sem perda.

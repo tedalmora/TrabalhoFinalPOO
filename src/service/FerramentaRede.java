@@ -2,15 +2,8 @@ package service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +12,7 @@ import java.util.regex.Pattern;
 
 /**
  * Camada que encapsula as ferramentas de diagnóstico de rede:
- * ping, traceroute, DNS direto/reverso, teste de porta TCP e HTTP HEAD/GET.
+ * ping e traceroute.
  * Detecta Windows vs. Linux em tempo de execução.
  *
  * Todas as chamadas são bloqueantes — quem orquestra é o MonitorDispositivos
@@ -104,117 +97,6 @@ public final class FerramentaRede {
             if (patHop.matcher(linha).matches()) hops.add(linha.trim());
         }
         return hops;
-    }
-
-    // -----------------------------------------------------------------
-    // DNS direto e reverso
-    // -----------------------------------------------------------------
-
-    public static ResultadoDns resolverDnsDireto(String host) {
-        long inicio = System.currentTimeMillis();
-        try {
-            InetAddress[] enderecos = InetAddress.getAllByName(host);
-            List<String> ips = new ArrayList<>();
-            for (InetAddress a : enderecos) ips.add(a.getHostAddress());
-            return new ResultadoDns(true, true, ips,
-                    System.currentTimeMillis() - inicio, null);
-        } catch (Exception e) {
-            return new ResultadoDns(true, false, null,
-                    System.currentTimeMillis() - inicio, e.getClass().getSimpleName());
-        }
-    }
-
-    /**
-     * Reverso (PTR). O truque do getByAddress força a JVM a consultar
-     * o DNS, em vez de devolver o hostname já em cache.
-     */
-    public static ResultadoDns resolverDnsReverso(String host) {
-        long inicio = System.currentTimeMillis();
-        try {
-            InetAddress alvo = InetAddress.getByName(host);
-            InetAddress soIp = InetAddress.getByAddress(alvo.getAddress());
-            String nome = soIp.getCanonicalHostName();
-            long tempo = System.currentTimeMillis() - inicio;
-            if (nome == null || nome.equals(soIp.getHostAddress())) {
-                return new ResultadoDns(false, false,
-                        Arrays.asList(soIp.getHostAddress()), tempo,
-                        "IP sem registro PTR");
-            }
-            return new ResultadoDns(false, true,
-                    Arrays.asList(nome), tempo, null);
-        } catch (Exception e) {
-            return new ResultadoDns(false, false, null,
-                    System.currentTimeMillis() - inicio, e.getClass().getSimpleName());
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // Teste de porta TCP
-    // -----------------------------------------------------------------
-
-    /** Tenta abrir uma conexão TCP. Útil quando ICMP está bloqueado. */
-    public static ResultadoTcp testarPortaTcp(String host, int porta, int timeoutMs) {
-        long inicio = System.currentTimeMillis();
-        try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(host, porta), timeoutMs);
-            return new ResultadoTcp(porta, true,
-                    System.currentTimeMillis() - inicio, null);
-        } catch (Exception e) {
-            return new ResultadoTcp(porta, false,
-                    System.currentTimeMillis() - inicio, e.getClass().getSimpleName());
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // HTTP HEAD (com fallback para GET)
-    // -----------------------------------------------------------------
-
-    /**
-     * Faz HEAD (e GET se for 405). Escolhe http ou https com base na porta:
-     * 443 → https; outras → http. Sucesso = qualquer resposta HTTP.
-     */
-    public static ResultadoHttp testarHttp(String host, Integer portaTcp) {
-        String url;
-        if (portaTcp != null && portaTcp == 443) {
-            url = "https://" + host;
-        } else if (portaTcp != null && portaTcp != 80) {
-            url = "http://" + host + ":" + portaTcp;
-        } else {
-            url = "http://" + host;
-        }
-
-        long inicio = System.currentTimeMillis();
-        HttpURLConnection conn = null;
-        try {
-            URL u = URI.create(url).toURL();
-            conn = abrirHttp(u, "HEAD");
-            int status = conn.getResponseCode();
-            String msg = conn.getResponseMessage();
-            if (status == HttpURLConnection.HTTP_BAD_METHOD) {
-                conn.disconnect();
-                conn = abrirHttp(u, "GET");
-                status = conn.getResponseCode();
-                msg = conn.getResponseMessage();
-            }
-            return new ResultadoHttp(true, status, msg == null ? "" : msg,
-                    url, System.currentTimeMillis() - inicio);
-        } catch (Exception e) {
-            return new ResultadoHttp(false, -1,
-                    e.getClass().getSimpleName() + ": " + e.getMessage(),
-                    url, System.currentTimeMillis() - inicio);
-        } finally {
-            if (conn != null) conn.disconnect();
-        }
-    }
-
-    private static HttpURLConnection abrirHttp(URL u, String metodo) throws Exception {
-        HttpURLConnection c = (HttpURLConnection) u.openConnection();
-        c.setRequestMethod(metodo);
-        c.setConnectTimeout(4000);
-        c.setReadTimeout(4000);
-        c.setInstanceFollowRedirects(true);
-        c.setRequestProperty("User-Agent", "GerenciadorRede/1.0");
-        return c;
     }
 
     // -----------------------------------------------------------------

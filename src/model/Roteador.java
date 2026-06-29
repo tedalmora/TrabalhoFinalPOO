@@ -1,6 +1,6 @@
 package model;
 
-/** Roteador. Alerta se a rota tem muitos saltos (possível loop). */
+// Roteador. Alerta se a rota tem muitos saltos (possível loop, quando o roteador está mal configurado) ou se a latência é alta.
 public class Roteador extends DispositivoRede {
 
     public Roteador(String nome, String enderecoIp) {
@@ -8,7 +8,9 @@ public class Roteador extends DispositivoRede {
     }
 
     @Override
-    public String tipoDispositivo() { return "Roteador"; }
+    public String tipoDispositivo() { 
+        return "Roteador"; 
+    }
 
     @Override
     public String diagnosticoEspecifico(MetricaRede m) {

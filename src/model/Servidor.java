@@ -1,6 +1,6 @@
 package model;
 
-/** Servidor — foco em latência e perda zero. */
+// Servidor — foco em latência e perda zero.
 public class Servidor extends DispositivoRede {
 
     public Servidor(String nome, String enderecoIp) {
@@ -8,7 +8,9 @@ public class Servidor extends DispositivoRede {
     }
 
     @Override
-    public String tipoDispositivo() { return "Servidor"; }
+    public String tipoDispositivo() { 
+        return "Servidor"; 
+    }
 
     @Override
     public String diagnosticoEspecifico(MetricaRede m) {
@@ -16,8 +18,7 @@ public class Servidor extends DispositivoRede {
         if (!m.isAlcancavel())
             return "Servidor offline — verifique serviços e conectividade.";
         if (m.getPerdaPacotesPercentual() > 0)
-            return "Servidor respondendo, mas com perda de pacotes ("
-                    + m.getPerdaFormatada() + ").";
+            return "Servidor respondendo, mas com perda de pacotes (" + m.getPerdaFormatada() + ").";
         if (m.getLatenciaMediaMs() > 80)
             return "Servidor com latência elevada (" + m.getLatenciaFormatada() + ").";
         return "Servidor saudável.";

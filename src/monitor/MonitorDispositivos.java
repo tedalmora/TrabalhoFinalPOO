@@ -11,17 +11,13 @@ import model.DispositivoRede;
 import model.MetricaRede;
 import model.StatusDispositivo;
 import service.FerramentaRede;
-import service.ResultadoDns;
-import service.ResultadoHttp;
 import service.ResultadoPing;
-import service.ResultadoTcp;
 
-/**
- * Núcleo de threads do sistema.
- *
- * Para refletir o padrão visto em aula, cada dispositivo tem sua própria
- * classe de thread (extends Thread) com loop em run(), sleep e interrupção.
- */
+/*
+Núcleo de threads do sistema.
+Cada dispositivo tem sua própria classe de thread (extends Thread) com loop em run(), sleep e interrupção.
+Executa ping + traceroute, atualiza o objeto DispositivoRede e notifica os observadores (JanelaPrincipal).
+*/
 public class MonitorDispositivos {
 
     private static final int INTERVALO_MS = 15_000;
@@ -74,29 +70,18 @@ public class MonitorDispositivos {
                     ? FerramentaRede.traceroute(d.getEnderecoIp())
                     : Collections.emptyList();
 
-            ResultadoDns dnsDireto = FerramentaRede.resolverDnsDireto(d.getEnderecoIp());
-            ResultadoDns dnsReverso = FerramentaRede.resolverDnsReverso(d.getEnderecoIp());
-
-            ResultadoTcp tcp = d.getPortaTcp() == null
-                    ? null
-                    : FerramentaRede.testarPortaTcp(d.getEnderecoIp(), d.getPortaTcp(), 3000);
-
-            ResultadoHttp http = d.isVerificarHttp()
-                    ? FerramentaRede.testarHttp(d.getEnderecoIp(), d.getPortaTcp())
-                    : null;
-
-            StatusDispositivo status = interpretarStatus(ping, tcp, http);
+                StatusDispositivo status = interpretarStatus(ping);
 
             // Métrica preliminar para a subclasse calcular o diagnóstico.
             MetricaRede previa = new MetricaRede(ping.isAlcancavel(),
                     ping.getLatenciaMediaMs(), ping.getPerdaPercentual(),
-                    rota, status, "", dnsDireto, dnsReverso, tcp, http);
+                    rota, status, "");
             // Polimorfismo: cada tipo de dispositivo aplica suas regras.
             String diag = d.diagnosticoEspecifico(previa);
 
             MetricaRede metrica = new MetricaRede(ping.isAlcancavel(),
                     ping.getLatenciaMediaMs(), ping.getPerdaPercentual(),
-                    rota, status, diag, dnsDireto, dnsReverso, tcp, http);
+                    rota, status, diag);
             d.setUltimaMetrica(metrica);
 
             for (DispositivoObserver obs : observadores) {
@@ -108,21 +93,10 @@ public class MonitorDispositivos {
     }
 
     /** Combina os resultados em um status (verde / amarelo / vermelho). */
-    private StatusDispositivo interpretarStatus(ResultadoPing ping,
-                                                ResultadoTcp tcp,
-                                                ResultadoHttp http) {
-        boolean pingOk = ping.isAlcancavel();
-        boolean tcpOk = (tcp == null) || tcp.isAberta();
-        boolean httpOk = (http == null) || (http.isSucesso() && http.getStatus() < 400);
-
-        // Falha total: ping caiu e (sem TCP cadastrado OU TCP também fechado).
-        if (!pingOk && !tcpOk) return StatusDispositivo.FALHA;
-        if (!pingOk && tcp == null) return StatusDispositivo.FALHA;
-
+    private StatusDispositivo interpretarStatus(ResultadoPing ping) {
+        if (!ping.isAlcancavel()) return StatusDispositivo.FALHA;
         if (ping.getPerdaPercentual() > 0
-                || ping.getLatenciaMediaMs() > 150
-                || !tcpOk
-                || !httpOk) {
+                || ping.getLatenciaMediaMs() > 150) {
             return StatusDispositivo.ATENCAO;
         }
         return StatusDispositivo.OK;

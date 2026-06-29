@@ -1,6 +1,6 @@
 package model;
 
-/** Switch (em LAN espera-se latência muito baixa). */
+// Switch (em LAN espera-se latência muito baixa).
 public class SwitchRede extends DispositivoRede {
 
     public SwitchRede(String nome, String enderecoIp) {
@@ -8,7 +8,9 @@ public class SwitchRede extends DispositivoRede {
     }
 
     @Override
-    public String tipoDispositivo() { return "Switch"; }
+    public String tipoDispositivo() { 
+        return "Switch"; 
+    }
 
     @Override
     public String diagnosticoEspecifico(MetricaRede m) {
@@ -16,8 +18,7 @@ public class SwitchRede extends DispositivoRede {
         if (!m.isAlcancavel())
             return "Switch não respondeu — verifique alimentação ou IP de gerência.";
         if (m.getLatenciaMediaMs() > 20)
-            return "Switch respondendo com latência incomum para LAN ("
-                    + m.getLatenciaFormatada() + ").";
+            return "Switch respondendo com latência incomum para LAN (" + m.getLatenciaFormatada() + ").";
         return "Switch operando normalmente na LAN.";
     }
 }
