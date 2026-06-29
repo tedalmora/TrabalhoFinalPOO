@@ -75,8 +75,10 @@ public final class DispositivoFactory {
     // descobre o tipo de um dispositivo já existente (polimorfismo)
     public static TipoDispositivo tipoDe(DispositivoRede d) {
         for (TipoDispositivo t : TipoDispositivo.values()) {
-            if (t.getRotulo().equalsIgnoreCase(d.tipoDispositivo())) return t;
+            if (t.getRotulo().equalsIgnoreCase(d.tipoDispositivo()))
+                return t;
         }
+        // se não for nenhum dos tipos conhecidos, devolvo servidor como default
         return TipoDispositivo.SERVIDOR;
     }
 }
