@@ -2,9 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -54,84 +52,74 @@ public class DialogoDispositivo extends JDialog {
 
     // monta o formulario
     private void construirInterface() {
-        // gridbag layout é um layout manager que permite organizar os componentes em uma grade, com linhas e colunas, e permite que os componentes ocupem mais de uma célula da grade. É mais flexível que o GridLayout, que só permite uma grade fixa.
-        JPanel form = new JPanel(new GridBagLayout());
+        // fraço um grid pra posicionar os labels e campos de texto
+        JPanel form = new JPanel(new GridLayout(3, 2, 5, 5));
         form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-        //
-        GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(4, 4, 4, 4);
-        c.anchor = GridBagConstraints.WEST;
-
         // Linha 0: Tipo
-        c.gridx = 0; c.gridy = 0;
-        form.add(new JLabel("Tipo:", SwingConstants.RIGHT), c);
-        c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        form.add(comboTipo, c);
+        form.add(new JLabel("Tipo:", SwingConstants.RIGHT));
+        form.add(comboTipo);
 
         // Linha 1: Nome
-        c.gridx = 0; c.gridy = 1; c.fill = GridBagConstraints.NONE; c.weightx = 0;
-        form.add(new JLabel("Nome:", SwingConstants.RIGHT), c);
-        c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        form.add(campoNome, c);
+        form.add(new JLabel("Nome:", SwingConstants.RIGHT));
+        form.add(campoNome);
 
         // Linha 2: IP / hostname
-        c.gridx = 0; c.gridy = 2; c.fill = GridBagConstraints.NONE; c.weightx = 0;
-        form.add(new JLabel("IP/Host:", SwingConstants.RIGHT), c);
-        c.gridx = 1; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        form.add(campoIp, c);
+        form.add(new JLabel("IP/Host:", SwingConstants.RIGHT));
+        form.add(campoIp);
 
         // Botões
         JPanel botoes = new JPanel();
         JButton btnOk = new JButton(new AbstractAction("Confirmar") {
-            @Override public void actionPerformed(ActionEvent e) { confirmar(); }
+            @Override public void actionPerformed(ActionEvent e) { confirmar(); } //jogo pra o método confirmar() que valida os campos e cria/edita o dispositivo
         });
         JButton btnCancel = new JButton(new AbstractAction("Cancelar") {
-            @Override public void actionPerformed(ActionEvent e) { dispose(); }
-        });
+            @Override public void actionPerformed(ActionEvent e) { dispose(); } //jogo pra o método dispose() que fecha o diálogo
+        }); //dispose é um metodo da propria JDialog
         botoes.add(btnOk);
         botoes.add(btnCancel);
 
-        // Faz "Enter" confirmar e "Esc" cancelar (UX básica).
-        getRootPane().setDefaultButton(btnOk);
-
+        //adiciono os paineis a tela de dialogo criada
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(form, BorderLayout.CENTER);
         getContentPane().add(botoes, BorderLayout.SOUTH);
     }
 
+
     private void preencherCamposSeEdicao() {
         if (emEdicao != null) {
-            campoNome.setText(emEdicao.getNome());
-            campoIp.setText(emEdicao.getEnderecoIp());
-            comboTipo.setSelectedItem(DispositivoFactory.tipoDe(emEdicao));
+            campoNome.setText(emEdicao.getNome()); // preenche o campo de nome com o nome do dispositivo em edição
+            campoIp.setText(emEdicao.getEnderecoIp()); // preenche o campo de IP com o IP do dispositivo em edição
+            comboTipo.setSelectedItem(DispositivoFactory.tipoDe(emEdicao));// preenche o combo de tipo com o tipo do dispositivo em edição
             // Trocar o tipo de um dispositivo já existente complicaria
             // a vida do monitor (ID novo, métrica perdida). Mantemos
             // tipo fixo na edição.
-            comboTipo.setEnabled(false);
+            comboTipo.setEnabled(false);// desabilita o combo de tipo para que o usuário não possa alterar o tipo do dispositivo em edição
         }
+        //se ele nao for edicao, voce nao preenche nada
     }
 
     private void confirmar() {
         try {
+            //pego nome ip e tipo
             String nome = campoNome.getText();
             String ip = campoIp.getText();
             TipoDispositivo tipo = (TipoDispositivo) comboTipo.getSelectedItem();
 
             if (emEdicao == null) {
+                // se nao for edicao, eu crio um novo dispositivo com os dados informados
                 resultado = DispositivoFactory.criar(tipo, nome, ip);
             } else {
-                // Edição in-place: setters validam internamente.
+                // se for edição, eu so mudo nome e ip
                 emEdicao.setNome(nome.trim());
                 emEdicao.setEnderecoIp(ip.trim());
                 resultado = emEdicao;
             }
-            confirmado = true;
-            dispose();
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(
-                    this, ex.getMessage(), "Dados inválidos",
-                    JOptionPane.WARNING_MESSAGE);
+            confirmado = true; // marco que o usuário confirmou a operação para que o chamador saiba que ele confirmou e nao cancelou
+            dispose(); // fecho a janela
+        } catch (IllegalArgumentException ex) { //se argumento invalido
+            // mando uma mensagem de aviso
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Dados inválidos", JOptionPane.WARNING_MESSAGE);
         }
     }
 

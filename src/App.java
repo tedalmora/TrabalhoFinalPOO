@@ -3,13 +3,11 @@ import java.awt.EventQueue;
 import gui.JanelaPrincipal;
 import monitor.MonitorDispositivos;
 
-/**
- * Ponto de entrada do "Gerenciador de Dispositivos de Rede".
- *
- * Padrões: Factory Method (DispositivoFactory) e Observer (DispositivoObserver).
- * Itens avaliativos: polimorfismo (model.DispositivoRede + subclasses),
- * threads (MonitorDispositivos), GUI (pacote gui), padrão de projeto.
- */
+/*
+Padrões: Observer (DispositivoObserver) e Factory (não-default) com DispositivoFactory.
+Itens avaliativos: polimorfismo (model.DispositivoRede + subclasses),
+threads (MonitorDispositivos), GUI (pacote gui), padrão de projeto.
+*/
 public class App {
 
     public static void main(String[] args) {

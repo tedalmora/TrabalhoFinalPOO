@@ -111,9 +111,11 @@ public class JanelaPrincipal extends JFrame implements DispositivoObserver {
     // acoes
 
     private void abrirDialogoNovo() {
+        //abro um dialogo novo
         DialogoDispositivo dlg = new DialogoDispositivo(this, null);
         dlg.setVisible(true);
-        if (dlg.foiConfirmado()) {
+        if (dlg.foiConfirmado()) { //espero o usuário confirmar a operação, se ele cancelar, não faço nada
+            // quem cria o dispositivo é o dialogo, que chama a factory e valida os campos. Aqui eu só pego o resultado e adiciono no monitor e na tabela
             DispositivoRede novo = dlg.getResultado(); //pego novo dispositivo do dialogo
             monitor.adicionarDispositivo(novo);//coloco no monitor, ele vai criar a thread de coleta para esse dispositivo
             modelo.adicionar(novo);//coloco no modelo da tabela, começando a exibir na tabela
