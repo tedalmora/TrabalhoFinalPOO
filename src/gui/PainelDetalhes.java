@@ -10,9 +10,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import model.DispositivoRede;
-import model.MetricaRede;
-import model.StatusDispositivo;
+import classes.DispositivoRede;
+import classes.MetricaRede;
+import classes.StatusDispositivo;
 
 /*
 Painel lateral que exibe os DETALHES do dispositivo selecionado na

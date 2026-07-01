@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import model.DispositivoRede;
-import model.MetricaRede;
-import model.StatusDispositivo;
-import service.FerramentaRede;
-import service.ResultadoPing;
+import classes.DispositivoRede;
+import classes.MetricaRede;
+import classes.StatusDispositivo;
+import servicos.FerramentaRede;
+import servicos.ResultadoPing;
 
 /*
 Núcleo de threads do sistema.

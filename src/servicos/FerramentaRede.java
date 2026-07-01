@@ -1,4 +1,4 @@
-package service;
+package servicos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

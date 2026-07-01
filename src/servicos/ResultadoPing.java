@@ -1,4 +1,4 @@
-package service;
+package servicos;
 
 /*
 Resultado de um ping (também usado como "MTR simplificado").

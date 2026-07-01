@@ -1,4 +1,4 @@
-package model;
+package classes;
 
 // Switch (em LAN espera-se latência muito baixa).
 public class SwitchRede extends DispositivoRede {

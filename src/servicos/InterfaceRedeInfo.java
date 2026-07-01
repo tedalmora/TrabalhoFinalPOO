@@ -1,4 +1,4 @@
-package service;
+package servicos;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

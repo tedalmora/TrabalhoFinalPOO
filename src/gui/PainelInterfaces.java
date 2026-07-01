@@ -10,7 +10,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import service.InterfaceRedeInfo;
+import servicos.InterfaceRedeInfo;
 
 // baiscamente tenho uma tabela de service.InterfaceRedeInfo, que é a classe que encapsula as informações de cada interface de rede local, como nome, descrição, status, endereços IP, etc. A tabela é alimentada por um TableModel customizado (ModeloInterfaces) que implementa AbstractTableModel. O painel também tem um botão "Atualizar" que chama o método atualizar() para atualizar a lista de interfaces chamando InterfaceRedeInfo.listarLocais().
 

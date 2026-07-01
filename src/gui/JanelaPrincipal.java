@@ -18,8 +18,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import model.DispositivoRede;
-import model.StatusDispositivo;
+import classes.DispositivoRede;
+import classes.StatusDispositivo;
 import monitor.DispositivoObserver;
 import monitor.MonitorDispositivos;
 

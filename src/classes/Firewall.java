@@ -1,4 +1,4 @@
-package model;
+package classes;
 
 // Firewall: ICMP pode estar bloqueado por política
 public class Firewall extends DispositivoRede {

@@ -16,9 +16,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import model.DispositivoRede;
-import service.DispositivoFactory;
-import service.DispositivoFactory.TipoDispositivo;
+import classes.DispositivoRede;
+import servicos.DispositivoFactory;
+import servicos.DispositivoFactory.TipoDispositivo;
 
 /*
 Dialogos para cadastro, edição e remoção de dispositivos.

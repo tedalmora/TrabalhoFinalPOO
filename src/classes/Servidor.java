@@ -1,4 +1,4 @@
-package model;
+package classes;
 
 // Servidor — foco em latência e perda zero.
 public class Servidor extends DispositivoRede {

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
-import model.DispositivoRede;
-import model.MetricaRede;
+import classes.DispositivoRede;
+import classes.MetricaRede;
 
 //TableModel customizado que alimenta a JTable principal de dispositivos.
 public class ModeloDispositivos extends AbstractTableModel {

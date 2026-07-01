@@ -1,6 +1,6 @@
 package monitor;
 
-import model.DispositivoRede;
+import classes.DispositivoRede;
 
 /*
 Padrão Observer: contrato implementado por quem quiser ser avisado

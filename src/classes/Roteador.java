@@ -1,4 +1,4 @@
-package model;
+package classes;
 
 // Roteador. Alerta se a rota tem muitos saltos (possível loop, quando o roteador está mal configurado) ou se a latência é alta.
 public class Roteador extends DispositivoRede {

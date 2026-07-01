@@ -1,10 +1,10 @@
-package service;
+package servicos;
 
-import model.DispositivoRede;
-import model.Firewall;
-import model.Roteador;
-import model.Servidor;
-import model.SwitchRede;
+import classes.DispositivoRede;
+import classes.Firewall;
+import classes.Roteador;
+import classes.Servidor;
+import classes.SwitchRede;
 
 /*
 Centraliza a criação das subclasses de DispositivoRede. A GUI não precisa conhecer as classes concretas.
