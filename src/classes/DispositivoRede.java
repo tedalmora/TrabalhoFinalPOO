@@ -23,7 +23,7 @@ public abstract class DispositivoRede {
     private int id;
     private String nome;
     private String enderecoIp;
-    private volatile MetricaRede ultimaMetrica; //metricas e status
+    private MetricaRede ultimaMetrica; //metricas e status
 
     protected DispositivoRede(String nome, String enderecoIp) {
         this.id = PROXIMO_ID++;

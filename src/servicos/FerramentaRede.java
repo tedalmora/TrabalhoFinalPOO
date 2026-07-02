@@ -27,7 +27,7 @@ public final class FerramentaRede {
         cmd.add("ping");
         if (WINDOWS) {
             cmd.add("-n"); cmd.add(String.valueOf(quantidade)); //-n pra repeiticao e valor
-            cmd.add("-w"); cmd.add("1500"); //-w pra timeout de 1,5s
+            cmd.add("-w"); cmd.add("2000"); //-w pra timeout de 1,5s
         } else {
             cmd.add("-c"); cmd.add(String.valueOf(quantidade)); //-c pra repeiticao e valor
             cmd.add("-W"); cmd.add("2"); //-W pra timeout de 2s (linux usa segundos, windows usa milissegundos)
@@ -38,7 +38,7 @@ public final class FerramentaRede {
 
         // Aceita "time=12.3 ms", "time<1ms", "tempo=12ms".
         Pattern patLat = Pattern.compile("(?:time|tempo)[=<]([0-9]+(?:[.,][0-9]+)?)", Pattern.CASE_INSENSITIVE); //funcao regex pra pegar a latencia. aceita time=12.3ms, time<1ms, tempo=12ms, etc
-        Pattern patPerda = Pattern.compile("([0-9]+)% (?:packet )?(?:loss|perda|perdidos)", Pattern.CASE_INSENSITIVE); //funcao regex pra pegar a perda de pacotes. aceita 0% loss, 0% packet loss, 0% perda, 0% pacotes perdidos, etc
+        Pattern patPerda = Pattern.compile("([0-9]+)% (?:packet )?(?:loss|perda)", Pattern.CASE_INSENSITIVE); //funcao regex pra pegar a perda de pacotes. aceita 0% loss, 0% packet loss, 0% perda, 0% pacotes perdidos, etc
 
         double soma = 0;
         int respostas = 0;
@@ -63,11 +63,6 @@ public final class FerramentaRede {
                 }
                 catch (NumberFormatException ignored) { }
             }
-        }
-
-        // Fallback se o parser de % não pegou.
-        if (perda < 0) {
-            perda = ((quantidade - respostas) * 100.0) / Math.max(1, quantidade);
         }
 
         boolean alcancavel = respostas > 0; // se o host responde

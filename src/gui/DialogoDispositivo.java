@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -46,7 +45,6 @@ public class DialogoDispositivo extends JDialog {
         preencherCamposSeEdicao();
 
         pack();// ajusta o tamanho da janela para caber os componentes
-        setMinimumSize(new Dimension(380, getHeight()));
         setLocationRelativeTo(parent); // centraliza a janela em relação à janela pai
     }
 
